@@ -1,32 +1,19 @@
-import TodoItem from './TodoItem';
-import EditTodo from './EditTodo';
+import TodoItem from "./TodoItem";
+import EditTodo from "./EditTodo";
+import PropTypes from "prop-types";
 
-export default function TodoList({
-  todoList,
-  deleteTodo,
-  toggleTodo,
-  toggleTodoEdit,
-  editTodo,
-  selectTodo,
-}) {
+export default function TodoList({ todoList, deleteTodo, updateTodo }) {
   return todoList.length ? (
     <ul>
       {todoList.map((todo) =>
         todo.edit ? (
-          <EditTodo
-            key={todo.id}
-            todo={todo}
-            editTodo={(content) => editTodo(todo.id, content)}
-            cancelEditTodo={() => toggleTodoEdit(todo.id)}
-          />
+          <EditTodo key={todo._id} todo={todo} updateTodo={updateTodo} />
         ) : (
           <TodoItem
-            key={todo.id}
+            key={todo._id}
             todo={todo}
-            deleteTodo={() => deleteTodo(todo.id)}
-            toggleTodo={() => toggleTodo(todo.id)}
-            editTodo={() => toggleTodoEdit(todo.id)}
-            selectTodo={() => selectTodo(todo.id)}
+            updateTodo={updateTodo}
+            deleteTodo={deleteTodo}
           />
         )
       )}
@@ -35,3 +22,16 @@ export default function TodoList({
     <p>Aucune tâche en cours </p>
   );
 }
+
+TodoList.propTypes = {
+  deleteTodo: PropTypes.func.isRequired,
+  updateTodo: PropTypes.func.isRequired,
+  todoList: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      content: PropTypes.string,
+      edit: PropTypes.bool,
+      done: PropTypes.bool,
+    })
+  ).isRequired,
+};

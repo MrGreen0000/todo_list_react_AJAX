@@ -1,56 +1,53 @@
-import { useState } from 'react';
-import TodoList from './components/TodoList';
-import AddTodo from './components/AddTodo';
+import { useEffect, useState } from "react";
+import TodoList from "./components/TodoList";
+import AddTodo from "./components/AddTodo";
 
 function App() {
   const [todoList, setTodoList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  function addTodo(content) {
-    const todo = {
-      id: crypto.randomUUID(),
-      done: false,
-      edit: false,
-      selected: false,
-      content,
+  useEffect(() => {
+    let ignore = false;
+    async function fetchTodolist() {
+      try {
+        const response = await fetch("https://restapi.fr/api/rtodo");
+        if (response.ok) {
+          const todos = await response.json();
+          if (!ignore) {
+            if (Array.isArray(todos)) {
+              setTodoList(todos);
+            } else {
+              setTodoList([todos]);
+            }
+          }
+        } else {
+          console.log("erreur");
+        }
+      } catch (e) {
+        console.log("erreur");
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+    fetchTodolist();
+    return () => {
+      ignore = true;
     };
-    setTodoList([...todoList, todo]);
+  }, []);
+
+  function addTodo(newTodo) {
+    setTodoList([...todoList, newTodo]);
   }
 
-  function deleteTodo(id) {
-    setTodoList(todoList.filter((todo) => todo.id !== id));
+  function deleteTodo(deletedTodo) {
+    setTodoList(todoList.filter((t) => t._id !== deletedTodo._id));
   }
 
-  function toggleTodo(id) {
+  function updateTodo(updatedTodo) {
     setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, done: !todo.done } : todo
-      )
-    );
-  }
-
-  function toggleTodoEdit(id) {
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, edit: !todo.edit } : todo
-      )
-    );
-  }
-
-  function editTodo(id, content) {
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id ? { ...todo, edit: false, content } : todo
-      )
-    );
-  }
-
-  function selectTodo(id) {
-    setTodoList(
-      todoList.map((todo) =>
-        todo.id === id
-          ? { ...todo, selected: !todo.selected }
-          : { ...todo, selected: false }
-      )
+      todoList.map((t) => (t._id === updatedTodo._id ? updatedTodo : t))
     );
   }
 
@@ -59,14 +56,15 @@ function App() {
       <div className="card container p-20">
         <h1 className="mb-20">Liste de tâches</h1>
         <AddTodo addTodo={addTodo} />
-        <TodoList
-          todoList={todoList}
-          deleteTodo={deleteTodo}
-          toggleTodo={toggleTodo}
-          toggleTodoEdit={toggleTodoEdit}
-          editTodo={editTodo}
-          selectTodo={selectTodo}
-        />
+        {loading ? (
+          <p>Chargement en cours...</p>
+        ) : (
+          <TodoList
+            todoList={todoList}
+            deleteTodo={deleteTodo}
+            updateTodo={updateTodo}
+          />
+        )}
       </div>
     </div>
   );

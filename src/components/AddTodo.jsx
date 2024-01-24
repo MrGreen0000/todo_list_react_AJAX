@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState } from "react";
+import PropTypes from "prop-types";
 
 export default function AddTodo({ addTodo }) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   function handleChange(e) {
     const inputValue = e.target.value;
@@ -9,16 +12,46 @@ export default function AddTodo({ addTodo }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Enter' && value.length) {
+    if (e.key === "Enter" && value.length) {
       addTodo(value);
-      setValue('');
+      createTodo();
+      setValue("");
     }
+  }
+
+  async function createTodo() {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("https://restapi.fr/api/rtodo ", {
+        method: "POST",
+        body: JSON.stringify({
+          content: value,
+          edit: false,
+          node: false,
+        }),
+        headers: {
+          "Content-type": "application/json",
+        },
+      });
+      if (response.ok) {
+        const todo = await response.json();
+        addTodo(todo);
+      } else {
+        setError("Oops, une erreur");
+      }
+    } catch (e) {
+      setError("Oops, une erreur");
+    } finally {
+      setLoading(false);
+    }
+
+    setValue("");
   }
 
   function handleClick() {
     if (value.length) {
-      addTodo(value);
-      setValue('');
+      createTodo();
     }
   }
 
@@ -32,9 +65,14 @@ export default function AddTodo({ addTodo }) {
         className="mr-15 flex-fill"
         placeholder="Ajouter une tâche"
       />
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <button onClick={handleClick} className="btn btn-primary">
-        Ajouter
+        {loading ? "Chargement" : "Ajouter"}
       </button>
     </div>
   );
 }
+
+AddTodo.prototypes = {
+  addTodo: PropTypes.func.isRequired,
+};
