@@ -21,10 +21,10 @@ export default function TodoItem({ todo, deleteTodo, updateTodo }) {
         const newTodo = await response.json();
         updateTodo(newTodo);
       } else {
-        console.log("Oops, une erreur");
+        setError("Oops, une erreur");
       }
     } catch (e) {
-      console.log("Oops, une erreur");
+      setError("Oops, une erreur");
     } finally {
       setLoading(false);
     }
@@ -33,16 +33,17 @@ export default function TodoItem({ todo, deleteTodo, updateTodo }) {
   async function handleClickDeleteTodo() {
     try {
       setLoading(true);
+      setError(null);
       const response = await fetch(`https://restapi.fr/api/rtodo/${todo._id}`, {
         method: "DELETE",
       });
       if (response.ok) {
         deleteTodo(todo);
       } else {
-        console.log("Oops, une erreur");
+        setError("Oops, une erreur");
       }
     } catch (e) {
-      console.log("Oops, une erreur");
+      setError("Oops, une erreur");
     } finally {
       setLoading(false);
     }
